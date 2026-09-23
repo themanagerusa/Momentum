@@ -37,6 +37,7 @@ import {
 } from "recharts";
 import { useMemo, useState } from "react";
 import ArtistsModule from "@/components/ArtistsModule";
+import LiveNewsModule from "@/components/LiveNewsModule";
 
 const nav = [
   ["Visão geral", LayoutDashboard],
@@ -396,7 +397,7 @@ function Module({
 }) {
   if (active === "Artistas") return <ArtistsModule open={addArtistOpen} onOpenChange={setAddArtistOpen}/>;
   if (active === "Reputação") return <ReputationModule/>;
-  if (active === "Notícias") return <NewsModule/>;
+  if (active === "Notícias") return <LiveNewsModule/>;
   if (active === "Redes sociais") return <SocialModule/>;
   if (active === "Música") return <MusicModule/>;
   if (active === "Comparativos") return <ComparisonModule/>;
