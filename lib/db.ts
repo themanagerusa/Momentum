@@ -78,6 +78,24 @@ export async function ensureMomentumSchema() {
   `;
 
   await sql`
+    CREATE TABLE IF NOT EXISTS momentum_monitoring_sources (
+      id UUID PRIMARY KEY,
+      artist_id UUID NOT NULL REFERENCES momentum_artists(id) ON DELETE CASCADE,
+      platform TEXT NOT NULL,
+      target_url TEXT NOT NULL,
+      source_kind TEXT NOT NULL DEFAULT 'official_profile',
+      enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      status TEXT NOT NULL DEFAULT 'pending',
+      last_collected_at TIMESTAMPTZ,
+      next_collection_at TIMESTAMPTZ,
+      last_error TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (artist_id, platform, target_url)
+    )
+  `;
+
+  await sql`
     CREATE TABLE IF NOT EXISTS momentum_monitoring_events (
       id UUID PRIMARY KEY,
       artist_id UUID NOT NULL REFERENCES momentum_artists(id) ON DELETE CASCADE,
@@ -99,6 +117,8 @@ export async function ensureMomentumSchema() {
   `;
 
   await sql`CREATE INDEX IF NOT EXISTS idx_momentum_platforms_artist ON momentum_artist_platforms(artist_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_momentum_sources_artist ON momentum_monitoring_sources(artist_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_momentum_sources_due ON momentum_monitoring_sources(enabled, next_collection_at)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_momentum_events_artist_time ON momentum_monitoring_events(artist_id, collected_at DESC)`;
 
   return sql;
@@ -116,6 +136,30 @@ export function extractHandle(platform: string, rawUrl: string) {
 
     if (["instagram", "tiktok", "x", "facebook", "threads"].includes(platform)) {
       return parts[0] || null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function extractExternalId(platform: string, rawUrl: string) {
+  try {
+    const url = new URL(rawUrl);
+    const parts = url.pathname.split("/").filter(Boolean);
+
+    if (platform === "spotify" && parts[0] === "artist") return parts[1] || null;
+    if (platform === "deezer" && parts[0] === "artist") return parts[1] || null;
+    if (platform === "youtube") {
+      const channelIndex = parts.indexOf("channel");
+      if (channelIndex >= 0) return parts[channelIndex + 1] || null;
+      return parts.find((part) => part.startsWith("@")) || null;
+    }
+    if (platform === "apple_music") {
+      const last = parts.at(-1) || "";
+      const match = last.match(/id(\d+)/);
+      return match?.[1] || null;
     }
 
     return null;
