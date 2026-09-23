@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   ArtistInput,
   ensureMomentumSchema,
+  extractExternalId,
   extractHandle,
   normalizeUrl,
 } from "@/lib/db";
@@ -121,14 +122,26 @@ export async function POST(request: Request) {
 
       const id = randomUUID();
       const handle = extractHandle(platform, url);
+      const externalId = extractExternalId(platform, url);
       const monitorEnabled = item.monitorEnabled !== false;
 
       await sql`
         INSERT INTO momentum_artist_platforms
-          (id, artist_id, platform, url, handle, monitor_enabled, created_at, updated_at)
+          (id, artist_id, platform, url, handle, external_id, monitor_enabled, created_at, updated_at)
         VALUES
-          (${id}, ${artistId}, ${platform}, ${url}, ${handle}, ${monitorEnabled}, ${now}, ${now})
+          (${id}, ${artistId}, ${platform}, ${url}, ${handle}, ${externalId}, ${monitorEnabled}, ${now}, ${now})
       `;
+
+      if (monitorEnabled) {
+        await sql`
+          INSERT INTO momentum_monitoring_sources
+            (id, artist_id, platform, target_url, source_kind, enabled, status, created_at, updated_at)
+          VALUES
+            (${randomUUID()}, ${artistId}, ${platform}, ${url}, 'official_profile', TRUE, 'pending', ${now}, ${now})
+          ON CONFLICT (artist_id, platform, target_url)
+          DO UPDATE SET enabled = TRUE, status = 'pending', updated_at = EXCLUDED.updated_at
+        `;
+      }
     }
 
     for (const alias of cleanList(body.aliases)) {
