@@ -36,9 +36,11 @@ import {
   YAxis,
 } from "recharts";
 import { useMemo, useState } from "react";
+import ArtistsModule from "@/components/ArtistsModule";
 
 const nav = [
   ["Visão geral", LayoutDashboard],
+  ["Artistas", Users],
   ["Reputação", CircleGauge],
   ["Notícias", Newspaper],
   ["Redes sociais", MessageSquareText],
@@ -383,7 +385,16 @@ function AdminModule() {
   );
 }
 
-function Module({ active }: { active: string }) {
+function Module({
+  active,
+  addArtistOpen,
+  setAddArtistOpen,
+}: {
+  active: string;
+  addArtistOpen: boolean;
+  setAddArtistOpen: (value: boolean) => void;
+}) {
+  if (active === "Artistas") return <ArtistsModule open={addArtistOpen} onOpenChange={setAddArtistOpen}/>;
   if (active === "Reputação") return <ReputationModule/>;
   if (active === "Notícias") return <NewsModule/>;
   if (active === "Redes sociais") return <SocialModule/>;
@@ -398,7 +409,9 @@ function Module({ active }: { active: string }) {
 export default function Home() {
   const [active, setActive] = useState("Visão geral");
   const [range, setRange] = useState("7d");
+  const [addArtistOpen, setAddArtistOpen] = useState(false);
   const selectedArtist = "Artista principal";
+  const pageTitle = active === "Artistas" ? "Base de artistas" : selectedArtist;
   useMemo(() => selectedArtist, []);
 
   return (
@@ -411,11 +424,11 @@ export default function Home() {
 
       <section className="content">
         <header className="topbar">
-          <div><p>Momentum / {active}</p><h1>{selectedArtist}</h1></div>
-          <div className="actions"><div className="search"><Search size={16}/><input placeholder="Buscar artista, assunto ou fonte..." /></div><button className="ghost"><BellRing size={17}/></button><button className="primary">+ Adicionar artista</button></div>
+          <div><p>Momentum / {active}</p><h1>{pageTitle}</h1></div>
+          <div className="actions"><div className="search"><Search size={16}/><input placeholder="Buscar artista, assunto ou fonte..." /></div><button className="ghost"><BellRing size={17}/></button><button className="primary" onClick={() => { setActive("Artistas"); setAddArtistOpen(true); }}>+ Adicionar artista</button></div>
         </header>
         <div className="subbar"><div className="artistPill"><span className="avatar">A</span><b>{selectedArtist}</b><span>Brasil</span></div><div className="ranges">{["24h","7d","30d","90d"].map(r => <button key={r} className={range===r ? "selected":""} onClick={()=>setRange(r)}>{r}</button>)}</div></div>
-        <Module active={active}/>
+        <Module active={active} addArtistOpen={addArtistOpen} setAddArtistOpen={setAddArtistOpen}/>
         <section className="card roadmap"><div><span>STATUS DO MVP</span><h3>Interface funcional · dados ainda demonstrativos</h3></div><div className="chips">{["Chartmetric","Instagram","TikTok","YouTube","X","Notícias","Spotify"].map(x=><span key={x}>{x}</span>)}</div></section>
       </section>
     </main>
