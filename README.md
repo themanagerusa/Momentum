@@ -96,3 +96,12 @@ Endpoints atuais:
 - `POST /api/artists`
 - `DELETE /api/artists/:id`
 - `GET /api/monitoring/sources`
+
+
+## Status do banco
+
+- Neon PostgreSQL: conectado
+- Projeto Neon: Momentum
+- Região: São Paulo
+- Schema inicial: aplicado
+- Persistência de artistas e fontes de monitoramento: pronta
