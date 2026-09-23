@@ -57,3 +57,42 @@ A arquitetura está preparada para evoluir para ingestão real via:
 8. alertas de crise
 9. autenticação e perfis de acesso
 10. integrações reais e atualização automática
+
+
+## Cadastro de artistas
+
+O Momentum agora possui uma base própria para cadastro de artistas. Cada artista pode ter:
+
+- nome artístico
+- país
+- gênero / segmento
+- imagem oficial
+- Chartmetric Artist ID
+- aliases e palavras-chave
+- Instagram
+- TikTok
+- YouTube
+- Spotify
+- Apple Music
+- Deezer
+- X / Twitter
+- Facebook
+- Threads
+- Kwai
+- SoundCloud
+- Amazon Music
+- site oficial
+
+Cada plataforma pode ser marcada individualmente como **Monitorar**. Quando o artista é salvo, os links oficiais são persistidos no PostgreSQL e também registrados em `momentum_monitoring_sources` para alimentar os coletores futuros.
+
+### Banco de dados
+
+Defina a variável `DATABASE_URL` no projeto Vercel. A aplicação cria automaticamente as tabelas necessárias na primeira chamada da API.
+
+Endpoints atuais:
+
+- `GET /api/health`
+- `GET /api/artists`
+- `POST /api/artists`
+- `DELETE /api/artists/:id`
+- `GET /api/monitoring/sources`
